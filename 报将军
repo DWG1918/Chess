@@ -1,0 +1,370 @@
+//将军
+ void Telling_Black()
+ {
+	
+	 judge = false;
+	 int  row_=0;
+	 int col_=0;
+	 for (int i = 0; i < ROW; i++)
+	 {
+		 for (int j = 0; j < COL; j++)
+		 {
+			 if (map[i][j].id == 将)
+			 {
+				 row_ = i;
+				 col_ = j;
+			 }
+		 }
+	 }
+	 //兵将军
+	 if (map[row_ + 1][col_].id == 兵 || map[row_][col_ - 1].id == 兵 || map[row_][col_ + 1].id == 兵)
+	 {
+		 judge = true;
+	 }
+	 //俥将军
+	 int key = 0;
+	 for (int i = row_+1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 俥 && key == 0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int i = row_-1; i >=0; i--)
+	 {
+		 if (map[i][col_].id == 俥 &&key==0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 俥 &&key==0)
+		 {
+			 judge = 0;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 俥 && key==0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ -1; j>=0; j--)
+	 {
+		 if (map[row_][j].id == 俥 &&key==0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 
+	 //炮将军
+	 int key_ = 0;
+	 for (int i = row_ + 1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 炮 && key_ == 1)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int i = row_ - 1; i >= 0; i--)
+	 {
+		 if (map[i][col_].id == 炮 && key_ == 1)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 炮 && key_ == 1)
+		 {
+			 judge = 0;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 炮 && key_ == 1)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ - 1; j >= 0; j--)
+	 {
+		 if (map[row_][j].id == 炮 && key_ == 1)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+
+	 //马将军
+	 if (map[row_ - 1][col_ - 1].id == SPACE && (map[row_ - 2][col_ - 1].id == 马 || map[row_ - 1][col_ - 2].id == 马))
+	 {
+		 judge = true;
+	 }
+	 if (map[row_ + 1][col_ + 1].id == SPACE && (map[row_ + 2][col_ + 1].id == 马 || map[row_ + 1][col_ + 2].id == 马))
+	 {
+		 judge = true;
+	 }
+	 if (map[row_ + 1][col_ - 1].id == SPACE && (map[row_ + 2][col_ - 1].id == 马 || map[row_ + 1][col_ - 2].id == 马))
+	 {
+		 judge =true;
+	 }
+	 if (map[row_ - 1][col_ + 1].id == SPACE && (map[row_ - 2][col_ + 1].id == 马 || map[row_ - 1][col_ + 2].id == 马))
+	 {
+		 judge = true;
+	 }
+
+	 //帥将军
+	 int key2 = 0;
+	 for (int i = row_+1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 帥 && key2 == 0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key2++;
+		 }
+	 }
+ }
+ 
+ //車将军
+	 int key = 0;
+	 for (int i = row_ + 1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 車 && key == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int i = row_ - 1; i >= 0; i--)
+	 {
+		 if (map[i][col_].id == 車 && key == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 車 && key == 0)
+		 {
+			 judge_ = 0;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 車 && key == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ - 1; j >= 0; j--)
+	 {
+		 if (map[row_][j].id == 車 && key == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+
+	 //砲将军
+	 int key_ = 0;
+	 for (int i = row_ + 1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int i = row_ - 1; i >= 0; i--)
+	 {
+		 if (map[i][col_].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ - 1; j >= 0; j--)
+	 {
+		 if (map[row_][j].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+
+	 //馬将军
+	 if (map[row_ - 1][col_ - 1].id == SPACE && (map[row_ - 2][col_ - 1].id == 馬 || map[row_ - 1][col_ - 2].id == 馬))
+	 {
+		 judge_ = true;
+	 }
+	 if (map[row_ + 1][col_ + 1].id == SPACE && (map[row_ + 2][col_ + 1].id == 馬 || map[row_ + 1][col_ + 2].id == 馬))
+	 {
+		 judge_ = true;
+	 }
+	 if (map[row_ + 1][col_ - 1].id == SPACE && (map[row_ + 2][col_ - 1].id == 馬 || map[row_ + 1][col_ - 2].id == 馬))
+	 {
+		 judge_ = true;
+	 }
+	 if (map[row_ - 1][col_ + 1].id == SPACE && (map[row_ - 2][col_ + 1].id == 馬 || map[row_ - 1][col_ + 2].id == 馬))
+	 {
+		 judge_ = true;
+	 }
+
+	 //将将军
+	 int key2 = 0;
+	 for (int i = row_ - 1; i>=0; i--)
+	 {
+		 if (map[i][col_].id == 将 && key2 == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key2++;
+		 }
+	 }
+ }
+
+ void start_button()
+ {
+	 settextcolor(BLACK);
+	 setbkmode(TRANSPARENT);
+	 settextstyle(50, 0, "楷体");
+	 char name[] = "开始游戏";
+	 int width = (800 - textwidth(name)) / 2;
+	 int height = (800 - textheight(name)) / 2 ;
+	 outtextxy(width, height, name);
+	
+ }
