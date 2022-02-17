@@ -1,0 +1,86 @@
+//鼠标控制  左键表示选择 右键表示取消
+ void MouseControl()
+{
+	
+	ExMessage msg;
+	if (peekmessage(&msg, EM_MOUSE))
+	{
+		if (msg.message == WM_LBUTTONDOWN)
+		{
+			//printf_s("%d %d\n", msg.x, msg.y);
+			row = (msg.y - INTERVAL) / CHESS_GRID_SIZE;
+			col = (msg.x - INTERVAL) / CHESS_GRID_SIZE;
+			if (msg.x > map[row][col].x + 40 && msg.y > map[row][col].y + 40)
+			{
+				row++;
+				col++;
+			}
+			if (msg.x < map[row][col].x + 30 && msg.y > map[row][col].y + 40)
+			{
+				row++;
+			}
+			if (msg.x > map[row][col].x + 40 && msg.y < map[row][col].y + 30)
+			{
+				col++;
+			}
+			
+			if (state.state == BEGIN)
+			{
+				state.begc = row;
+				state.begr = col;
+				state.state = END;
+			}
+			else if (state.state == END)
+			{
+				state.endc = row;
+				state.endr = col;
+				state.state = BEGIN;
+			}
+			chessmove();
+			//音乐控制
+			if (msg.x > 700 && msg.x < 760 && msg.y>55 && msg.y < 85)
+			{
+				if (music_control == 1)
+				{
+					mciSendString("close ./bgm.mp3", 0, 0, 0);
+					music_control = 0;
+				}
+				else if (music_control == 0)
+				{
+					mciSendString("open ./bgm.mp3", 0, 0, 0);
+					mciSendString("play ./bgm.mp3 repeat", 0, 0, 0);
+					music_control = 1;
+				}
+			}
+			//悔棋
+			if (msg.x > 685 && msg.x < 775 && msg.y>182 && msg.y < 217)
+			{
+				printf_s("悔棋\n");
+				step--;
+				move_type = move_type_record[step];
+				for (int i = 0; i < ROW; i++)
+				{
+					for (int j = 0; j < COL; j++)
+					{
+						map[i][j] = Record_each_step[step][i][j];
+					}
+				}
+			}
+			//返回菜单
+			if (msg.x > 658 && msg.x < 802 && msg.y>632 && msg.y < 667)
+			{
+				picture_switch = 1;
+			}
+			//重新开始
+			if (msg.x > 658 && msg.x < 802 && msg.y>282 && msg.y < 317)
+			{
+				step = 0;
+				GameInit();
+			}
+		}
+		else if (msg.message == WM_RBUTTONDOWN)
+		{
+			state = { -1,-1,-1,-1,BEGIN };
+		}
+	}
+}
