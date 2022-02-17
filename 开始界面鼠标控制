@@ -1,0 +1,38 @@
+//开始界面的鼠标控制
+ void MouseControl_()
+ {
+	 ExMessage msg;
+	 if (peekmessage(&msg, EM_MOUSE))
+	 {
+		 if (msg.message == WM_LBUTTONDOWN)
+		 {
+			 if (msg.x > 300 && msg.x < 500 && msg.y>325 && msg.y < 425)
+			 {
+				 picture_switch = 2;
+
+			 }
+
+			 if (msg.x > 700 && msg.x < 760 && msg.y>55 && msg.y < 85)
+			 {
+				 if (music_control == 1)
+				 {
+					 mciSendString("close ./bgm.mp3", 0, 0, 0);
+					 music_control = 0;
+				 }
+				 else if (music_control == 0)
+				 {
+					 mciSendString("open ./bgm.mp3", 0, 0, 0);
+					 mciSendString("play ./bgm.mp3 repeat", 0, 0, 0);
+					 music_control = 1;
+				 }
+
+			 }
+			 if (msg.x > 300 && msg.x < 500 && msg.y>475 && msg.y < 525)
+			 {
+				 exit(0);
+			 }
+		 }
+	 }
+
+	 
+ }
