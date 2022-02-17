@@ -1,0 +1,1159 @@
+#include <graphics.h>	
+#include <easyx.h>
+#include <conio.h>
+#include <stdio.h>
+#include <math.h>
+#include<mmsystem.h>
+#pragma comment(lib,"winmm.lib")
+
+#define INTERVAL 50  //前面的间隔
+#define CHESS_GRID_SIZE 70  //格子宽度
+#define ROW  10
+#define COL  9
+enum PIECES//枚举棋子
+{
+	車, 馬, 象, 士, 将, 砲, 卒,
+	俥, 马, 相, 仕, 帥, 炮, 兵,
+	SPACE, BEGIN, END
+};
+//红黑方棋子
+int blackChess[] = { 車, 馬, 象, 士, 将, 砲, 卒 };
+int redChess[] = { 俥, 马, 相, 仕, 帥, 炮, 兵 };
+const char* chessName[] = { "車", "馬", "象", "士", "将", "砲", "卒", "俥", "马", "相", "仕", "帥", "炮", "兵" };
+struct Chess//棋子属性
+{
+	int x;
+	int y;
+	int id;//哪个棋子
+	int type;//是哪一方的棋子 红，黑？
+	bool river;//判断小兵是否过了河
+};
+struct Chess  map[ROW][COL];//结构体数组，用来保存每一个点的信息
+
+//state用来记录前后两次鼠标的点击位置
+struct state {
+	int begr;
+	int begc;
+	int endr;
+	int endc;
+	int state;
+}state = { -1,-1,-1,-1,BEGIN };
+int row = 0;
+int col = 0;
+
+bool judge = false;
+bool judge_ = false;
+
+int picture_switch = 1;//界面转化
+
+int music_control = 1;//音乐控制
+
+
+int step_record, step_interruption;//记录总共的步数，记录打断的步数
+int step = 0;//记录步数
+
+
+struct Chess Record_each_step[200][ROW][COL];
+
+int move_type =RED;//回合转化
+int move_type_record[200] = { RED };//记录每一次回合转化
+
+void Record()//记录每一步
+{
+	step++;
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int j = 0; j < COL; j++)
+		{
+			Record_each_step[step][i][j] = map[i][j];
+		}
+	}
+	move_type_record[step] = move_type;
+}
+
+void chessmove();
+int max_(int a, int b)
+{
+	if (a > b) {
+		return a;
+	}
+	else {
+		return b;
+	}
+}
+int min_(int a, int b)
+{
+	if (a < b) {
+		return a;
+	}
+	else {
+		return b;
+	}
+}
+int havestock(struct state* state)
+{
+	int cnt = 0;
+	if (state->begc == state->endc)//横向比较
+	{
+		for (int i = min_(state->begr, state->endr); i <= max_(state->begr, state->endr); i++)
+		{
+			if (map[state->begc][i].id != SPACE)
+			{
+				cnt++;
+			}
+		}
+	}
+	if (state->begr == state->endr)//竖向比较
+	{
+		for (int i = min_(state->begc, state->endc); i <= max_(state->begc, state->endc); i++)
+		{
+			if (map[i][state->begr].id != SPACE)
+			{
+				cnt++;
+			}
+		}
+	}
+	if (map[state->endc][state->endr].id != SPACE)
+	{
+		return cnt - 2;
+	}
+	else {
+		return cnt - 1;
+	}
+}
+//初始化游戏数据
+void GameInit()
+{
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int k = 0; k < COL; k++)
+		{
+			int chessname = SPACE;
+			int mcolor = BLACK;
+			//黑棋
+			if (i <= 4)
+			{
+				mcolor = BLACK;
+				//初始化第一行的棋子，
+				if (i == 0)
+				{
+					if (k <= 4)
+					{
+						chessname = blackChess[k];
+					}
+					else
+					{
+						chessname = blackChess[8 - k];
+					}
+				}
+				//设置炮
+				if (i == 2 && (k == 1 || k == 7))
+				{
+					chessname = blackChess[5];
+				}
+				//设置小兵
+				if (i == 3 && k % 2 == 0)
+				{
+					chessname = blackChess[6];
+				}
+
+			}
+			//紅棋
+			else
+			{
+				mcolor = RED;
+				//初始化第一行的棋子，
+				if (i == 9)
+				{
+					if (k <= 4)
+					{
+						chessname = redChess[k];
+					}
+					else
+					{
+						chessname = redChess[8 - k];
+					}
+				}
+				//设置炮
+				if (i == 7 && (k == 1 || k == 7))
+				{
+					chessname = redChess[5];
+				}
+				//设置小兵
+				if (i == 6 && k % 2 == 0)
+				{
+					chessname = redChess[6];
+				}
+			}
+			map[i][k].id = chessname;
+			map[i][k].river = false;
+			map[i][k].type = mcolor;
+			map[i][k].x = k * CHESS_GRID_SIZE + INTERVAL;
+			map[i][k].y = i * CHESS_GRID_SIZE + INTERVAL;
+		}
+	}
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int j = 0; j < COL; j++)
+		{
+			if (map[i][j].id == SPACE)
+			{
+				map[i][j].type = YELLOW;
+			}
+		}
+	}
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int j = 0; j < COL; j++)
+		{
+			Record_each_step[0][i][j] = map[i][j];
+		}
+	}
+}
+
+
+//游戏绘制
+void GameDraw()
+{
+	
+
+	//设置背景颜色 
+	setbkcolor(RGB(252, 215, 162));
+	cleardevice();
+
+	//绘制棋盘
+	setlinecolor(BLACK);
+	setlinestyle(PS_SOLID, 2);
+	for (int i = 0; i < 10; i++)
+	{
+		//画横线
+		line(INTERVAL, i * CHESS_GRID_SIZE + INTERVAL, 8 * CHESS_GRID_SIZE + INTERVAL, i * CHESS_GRID_SIZE + INTERVAL);
+		//画竖线
+		if (i < 9)
+		{
+			line(i * CHESS_GRID_SIZE + INTERVAL, INTERVAL, i * CHESS_GRID_SIZE + INTERVAL, 9 * CHESS_GRID_SIZE + INTERVAL);
+		}
+	}
+	rectangle(INTERVAL - 5, INTERVAL - 5, 8 * CHESS_GRID_SIZE + INTERVAL + 5, 5 + 9 * CHESS_GRID_SIZE + INTERVAL);
+	//楚河汉界显示
+	setfillcolor(RGB(252, 215, 162));
+	fillrectangle(INTERVAL, 4 * CHESS_GRID_SIZE + INTERVAL, 8 * CHESS_GRID_SIZE + INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL);
+	//显示文字
+	char river[20] = "楚河        汉界";
+	settextstyle(50, 0, "楷体");
+	settextcolor(BLACK);
+	setbkmode(TRANSPARENT);
+	outtextxy(INTERVAL + 100, 4 * CHESS_GRID_SIZE + INTERVAL + 10, river);
+	//画九宫格
+		//画上面
+	line(3 * CHESS_GRID_SIZE + INTERVAL, INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL, 2 * CHESS_GRID_SIZE + INTERVAL);
+	line(3 * CHESS_GRID_SIZE + INTERVAL, 2 * CHESS_GRID_SIZE + INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL, INTERVAL);
+	//画下面
+	line(3 * CHESS_GRID_SIZE + INTERVAL, 7 * CHESS_GRID_SIZE + INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL, 9 * CHESS_GRID_SIZE + INTERVAL);
+	line(3 * CHESS_GRID_SIZE + INTERVAL, 9 * CHESS_GRID_SIZE + INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL, 7 * CHESS_GRID_SIZE + INTERVAL);
+	//画棋子
+	settextstyle(30, 0, "楷体");
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int k = 0; k < COL; k++)
+		{
+			if (map[i][k].id != SPACE)
+			{
+				setlinecolor(map[i][k].type);
+				fillcircle(map[i][k].x, map[i][k].y, 30);
+				fillcircle(map[i][k].x, map[i][k].y, 25);
+				settextcolor(map[i][k].type);
+				int width = textwidth(chessName[map[i][k].id]);
+				int height = textheight(chessName[map[i][k].id]);
+				outtextxy(map[i][k].x - width/2, map[i][k].y - height/2, chessName[map[i][k].id]);
+			}
+
+		}
+	}
+	//画出点击的边框
+	if (state.state==END && map[row][col].id!=SPACE)
+	{
+		setlinecolor(BLUE);
+		setlinestyle(PS_SOLID, 1);
+		rectangle(map[row][col].x - 30, map[row][col].y - 30, map[row][col].x + 30, map[row][col].y + 30);
+	}
+	//报将军
+	if (judge == true)
+	{
+		settextcolor(BLACK);
+		settextstyle(50, 0, "楷体");
+		setbkmode(TRANSPARENT);
+		outtextxy(630, 315, "将军");
+	}
+	if (judge_ == true)
+	{
+		settextcolor(RED);
+		settextstyle(50, 0, "楷体");
+		setbkmode(TRANSPARENT);
+		outtextxy(630, 405, "将军");
+	}
+}
+
+//鼠标控制  左键表示选择 右键表示取消
+ void MouseControl()
+{
+	
+	ExMessage msg;
+	if (peekmessage(&msg, EM_MOUSE))
+	{
+		if (msg.message == WM_LBUTTONDOWN)
+		{
+			//printf_s("%d %d\n", msg.x, msg.y);
+			row = (msg.y - INTERVAL) / CHESS_GRID_SIZE;
+			col = (msg.x - INTERVAL) / CHESS_GRID_SIZE;
+			if (msg.x > map[row][col].x + 40 && msg.y > map[row][col].y + 40)
+			{
+				row++;
+				col++;
+			}
+			if (msg.x < map[row][col].x + 30 && msg.y > map[row][col].y + 40)
+			{
+				row++;
+			}
+			if (msg.x > map[row][col].x + 40 && msg.y < map[row][col].y + 30)
+			{
+				col++;
+			}
+			
+			if (state.state == BEGIN)
+			{
+				state.begc = row;
+				state.begr = col;
+				state.state = END;
+			}
+			else if (state.state == END)
+			{
+				state.endc = row;
+				state.endr = col;
+				state.state = BEGIN;
+			}
+			chessmove();
+			//音乐控制
+			if (msg.x > 700 && msg.x < 760 && msg.y>55 && msg.y < 85)
+			{
+				if (music_control == 1)
+				{
+					mciSendString("close ./bgm.mp3", 0, 0, 0);
+					music_control = 0;
+				}
+				else if (music_control == 0)
+				{
+					mciSendString("open ./bgm.mp3", 0, 0, 0);
+					mciSendString("play ./bgm.mp3 repeat", 0, 0, 0);
+					music_control = 1;
+				}
+			}
+			//悔棋
+			if (msg.x > 685 && msg.x < 775 && msg.y>182 && msg.y < 217)
+			{
+				printf_s("悔棋\n");
+				step--;
+				move_type = move_type_record[step];
+				for (int i = 0; i < ROW; i++)
+				{
+					for (int j = 0; j < COL; j++)
+					{
+						map[i][j] = Record_each_step[step][i][j];
+					}
+				}
+			}
+			//返回菜单
+			if (msg.x > 658 && msg.x < 802 && msg.y>632 && msg.y < 667)
+			{
+				picture_switch = 1;
+			}
+			//重新开始
+			if (msg.x > 658 && msg.x < 802 && msg.y>282 && msg.y < 317)
+			{
+				step = 0;
+				GameInit();
+			}
+		}
+		else if (msg.message == WM_RBUTTONDOWN)
+		{
+			state = { -1,-1,-1,-1,BEGIN };
+		}
+	}
+}
+
+ //开始界面的鼠标控制
+ void MouseControl_()
+ {
+	 ExMessage msg;
+	 if (peekmessage(&msg, EM_MOUSE))
+	 {
+		 if (msg.message == WM_LBUTTONDOWN)
+		 {
+			 if (msg.x > 300 && msg.x < 500 && msg.y>325 && msg.y < 425)
+			 {
+				 picture_switch = 2;
+
+			 }
+
+			 if (msg.x > 700 && msg.x < 760 && msg.y>55 && msg.y < 85)
+			 {
+				 if (music_control == 1)
+				 {
+					 mciSendString("close ./bgm.mp3", 0, 0, 0);
+					 music_control = 0;
+				 }
+				 else if (music_control == 0)
+				 {
+					 mciSendString("open ./bgm.mp3", 0, 0, 0);
+					 mciSendString("play ./bgm.mp3 repeat", 0, 0, 0);
+					 music_control = 1;
+				 }
+
+			 }
+			 if (msg.x > 300 && msg.x < 500 && msg.y>475 && msg.y < 525)
+			 {
+				 exit(0);
+			 }
+		 }
+	 }
+
+	 
+ }
+ 
+
+ //背景音乐
+ void BGM()
+ {
+	 mciSendString("open ./bgm.mp3", 0, 0, 0);
+	 mciSendString("play ./bgm.mp3 repeat", 0, 0, 0);
+	 if (0)
+	 {
+		 mciSendString("close ./bgm.mp3", 0, 0, 0);
+	 }
+ }
+
+ 
+ 
+ //象棋移动规则
+ void chessmove()
+ {
+	 bool canmove = false;
+	 if (!(state.begc == state.endc && state.begr == state.endr) && state.begc != -1 && state.begr != -1
+		 && map[state.begc][state.begr].id != SPACE
+		 && map[state.begc][state.begr].type != map[state.endc][state.endr].type && state.state == BEGIN
+		 && ((map[state.begc][state.begr].type == RED && move_type == RED) || (map[state.begc][state.begr].type == BLACK && move_type == BLACK)))
+	 {
+		 if (map[state.begc][state.begr].type == RED)
+		 {
+			 move_type = BLACK;
+		 }
+		 else if (map[state.begc][state.begr].type == BLACK)
+		 {
+			 move_type = RED;
+		 }
+		 switch (map[state.begc][state.begr].id)
+		 {
+		 case 車:
+		 case 俥:
+			 if (state.begc == state.endc || state.begr == state.endr && havestock(&state) == 0)
+			 {
+
+				 canmove = true;
+			 }
+			 break;
+		 case 馬:
+		 case 马:
+			 if ((state.endc == state.begc - 2 && map[state.begc - 1][state.begr].id == SPACE && abs(state.endr - state.begr) == 1)
+				 || (state.endc == state.begc + 2 && map[state.begc + 1][state.begr].id == SPACE && abs(state.endr - state.begr) == 1)
+				 || (state.endr == state.begr - 2 && map[state.begc][state.begr - 1].id == SPACE && abs(state.endc - state.begc) == 1)
+				 || (state.endr == state.begr + 2 && map[state.begc][state.begr + 1].id == SPACE && abs(state.endc - state.begc) == 1))
+			 {
+				 canmove = true;
+			 }
+			 break;
+		 case 象:
+		 case 相:
+			 if (map[state.begc][state.begr].id == 象 && state.endc <= 4)
+			 {
+				 if ((state.endc == state.begc + 2 && state.endr == state.begr + 2 && map[state.begc + 1][state.begr + 1].id == SPACE)
+					 || (state.endc == state.begc + 2 && state.endr == state.begr - 2 && map[state.begc + 1][state.begr - 1].id == SPACE)
+					 || (state.endc == state.begc - 2 && state.endr == state.begr - 2 && map[state.begc - 1][state.begr - 1].id == SPACE)
+					 || (state.endc == state.begc - 2 && state.endr == state.begr + 2 && map[state.begc - 1][state.begr + 1].id == SPACE))
+				 {
+					 canmove = true;
+				 }
+			 }
+			 if (map[state.begc][state.begr].id == 相 && state.endc >= 5)
+			 {
+				 if ((state.endc == state.begc + 2 && state.endr == state.begr + 2 && map[state.begc + 1][state.begr + 1].id == SPACE)
+					 || (state.endc == state.begc + 2 && state.endr == state.begr - 2 && map[state.begc + 1][state.begr - 1].id == SPACE)
+					 || (state.endc == state.begc - 2 && state.endr == state.begr - 2 && map[state.begc - 1][state.begr - 1].id == SPACE)
+					 || (state.endc == state.begc - 2 && state.endr == state.begr + 2 && map[state.begc - 1][state.begr + 1].id == SPACE))
+				 {
+					 canmove = true;
+				 }
+			 }
+			 break;
+		 case 士:
+		 case 仕:
+			 if (map[state.begc][state.begr].id == 士 && state.endr >= 3 && state.endr <= 5 && state.endc >= 0
+				 && state.endc <= 2 && abs(state.begc - state.endc) == 1 && abs(state.endr - state.begr) == 1)
+			 {
+				 canmove = true;
+			 }
+			 if (map[state.begc][state.begr].id == 仕 && state.endr >= 3 && state.endr <= 5 && state.endc >= 7
+				 && state.endc <= 9 && abs(state.begc - state.endc) == 1 && abs(state.endr - state.begr) == 1)
+			 {
+				 canmove = true;
+			 }
+			 break;
+		 case 将:
+		 case 帥:
+			 if (map[state.begc][state.begr].id == 将 && state.endr >= 3 && state.endr <= 5 && state.endc >= 0
+				 && state.endc <= 2 && (abs(state.begc - state.endc) == 1 || abs(state.endr - state.begr) == 1)
+				 && !(abs(state.begc - state.endc) == 1 && abs(state.endr - state.begr) == 1))
+			 {
+				 canmove = true;
+			 }
+			 if (map[state.begc][state.begr].id == 将 && havestock(&state) == 0 && map[state.endc][state.endr].id == 帥)
+			 {
+				 canmove = true;
+			 }
+			 if (map[state.begc][state.begr].id == 帥 && state.endr >= 3 && state.endr <= 5 && state.endc >= 7
+				 && state.endc <= 9 && (abs(state.begc - state.endc) == 1 || abs(state.endr - state.begr) == 1)
+				 && !(abs(state.begc - state.endc) == 1 && abs(state.endr - state.begr) == 1))
+			 {
+				 canmove = true;
+			 }
+			 if (map[state.begc][state.begr].id == 帥 && havestock(&state) == 0 && map[state.endc][state.endr].id == 将)
+			 {
+				 canmove = true;
+			 }
+			 break;
+		 case 砲:
+		 case 炮:
+			 if ((state.begc == state.endc || state.begr == state.endr) && ((havestock(&state) == 0 && map[row][col].id == SPACE) || (havestock(&state) == 1 && map[row][col].id != SPACE)))
+			 {
+				 canmove = true;
+			 }
+			 break;
+		 case 卒:
+		 case 兵:
+			 if (map[state.begc][state.begr].river == false && state.begr == state.endr)
+			 {
+				 if (map[state.begc][state.begr].type == BLACK && state.endc == state.begc + 1)
+				 {
+					 canmove = true;
+				 }
+				 else if (map[state.begc][state.begr].type == RED && state.endc == state.begc - 1)
+				 {
+					 canmove = true;
+				 }
+			 }
+			 if (map[state.begc][state.begr].river == true)
+			 {
+				 if (map[state.begc][state.begr].type == BLACK && ((state.endc == state.begc + 1 && state.begr == state.endr)
+					 || (abs(state.begr - state.endr) == 1 && state.begc == state.endc)))
+				 {
+					 canmove = true;
+				 }
+				 if (map[state.begc][state.begr].type == RED && ((state.endc == state.begc - 1 && state.begr == state.endr)
+					 || (abs(state.begr - state.endr) == 1 && state.begc == state.endc)))
+				 {
+					 canmove = true;
+				 }
+			 }
+			 break;
+		 }
+	 }
+	 
+
+	 if (canmove)
+	 {
+		 map[state.endc][state.endr].id = map[state.begc][state.begr].id;
+		 map[state.begc][state.begr].id = SPACE;
+		 map[state.endc][state.endr].type = map[state.begc][state.begr].type;
+		 map[state.begc][state.begr].type = YELLOW;
+		 //map[state.endc][state.endr].river = map[state.begc][state.begr].river;
+		 if(map[state.endc][state.endr].id==卒 && state.endc>=5)
+		 {
+			 map[state.endc][state.endr].river = true;
+		 }
+		 if (map[state.endc][state.endr].id ==兵 && state.endc <= 4)
+		 {
+			 map[state.endc][state.endr].river = true;
+		 }
+		 Record();
+	 }
+ }
+
+ //将军
+ void Telling_Black()
+ {
+	
+	 judge = false;
+	 int  row_=0;
+	 int col_=0;
+	 for (int i = 0; i < ROW; i++)
+	 {
+		 for (int j = 0; j < COL; j++)
+		 {
+			 if (map[i][j].id == 将)
+			 {
+				 row_ = i;
+				 col_ = j;
+			 }
+		 }
+	 }
+	 //兵将军
+	 if (map[row_ + 1][col_].id == 兵 || map[row_][col_ - 1].id == 兵 || map[row_][col_ + 1].id == 兵)
+	 {
+		 judge = true;
+	 }
+	 //俥将军
+	 int key = 0;
+	 for (int i = row_+1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 俥 && key == 0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int i = row_-1; i >=0; i--)
+	 {
+		 if (map[i][col_].id == 俥 &&key==0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 俥 &&key==0)
+		 {
+			 judge = 0;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 俥 && key==0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ -1; j>=0; j--)
+	 {
+		 if (map[row_][j].id == 俥 &&key==0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 
+	 //炮将军
+	 int key_ = 0;
+	 for (int i = row_ + 1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 炮 && key_ == 1)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int i = row_ - 1; i >= 0; i--)
+	 {
+		 if (map[i][col_].id == 炮 && key_ == 1)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 炮 && key_ == 1)
+		 {
+			 judge = 0;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 炮 && key_ == 1)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ - 1; j >= 0; j--)
+	 {
+		 if (map[row_][j].id == 炮 && key_ == 1)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+
+	 //马将军
+	 if (map[row_ - 1][col_ - 1].id == SPACE && (map[row_ - 2][col_ - 1].id == 马 || map[row_ - 1][col_ - 2].id == 马))
+	 {
+		 judge = true;
+	 }
+	 if (map[row_ + 1][col_ + 1].id == SPACE && (map[row_ + 2][col_ + 1].id == 马 || map[row_ + 1][col_ + 2].id == 马))
+	 {
+		 judge = true;
+	 }
+	 if (map[row_ + 1][col_ - 1].id == SPACE && (map[row_ + 2][col_ - 1].id == 马 || map[row_ + 1][col_ - 2].id == 马))
+	 {
+		 judge =true;
+	 }
+	 if (map[row_ - 1][col_ + 1].id == SPACE && (map[row_ - 2][col_ + 1].id == 马 || map[row_ - 1][col_ + 2].id == 马))
+	 {
+		 judge = true;
+	 }
+
+	 //帥将军
+	 int key2 = 0;
+	 for (int i = row_+1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 帥 && key2 == 0)
+		 {
+			 judge = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key2++;
+		 }
+	 }
+ }
+ void Telling_Red()
+ {
+	 judge_ = false;
+	 int  row_ = 0;
+	 int col_ = 0;
+	 for (int i = 0; i < ROW; i++)
+	 {
+		 for (int j = 0; j < COL; j++)
+		 {
+			 if (map[i][j].id == 帥)
+			 {
+				 row_ = i;
+				 col_ = j;
+			 }
+		 }
+	 }
+	 //車, 馬, 象, 士, 将, 砲, 卒
+	 
+	 //卒将军
+	 if (map[row_ - 1][col_].id == 卒 || map[row_][col_ - 1].id == 卒 || map[row_][col_ + 1].id == 卒)
+	 {
+		 judge_ = true;
+	 }
+
+	 //車将军
+	 int key = 0;
+	 for (int i = row_ + 1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 車 && key == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int i = row_ - 1; i >= 0; i--)
+	 {
+		 if (map[i][col_].id == 車 && key == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 車 && key == 0)
+		 {
+			 judge_ = 0;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 車 && key == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+	 key = 0;
+	 for (int j = col_ - 1; j >= 0; j--)
+	 {
+		 if (map[row_][j].id == 車 && key == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key++;
+		 }
+	 }
+
+	 //砲将军
+	 int key_ = 0;
+	 for (int i = row_ + 1; i < ROW; i++)
+	 {
+		 if (map[i][col_].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int i = row_ - 1; i >= 0; i--)
+	 {
+		 if (map[i][col_].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ + 1; j < COL; j++)
+	 {
+		 if (map[row_][j].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+	 key_ = 0;
+	 for (int j = col_ - 1; j >= 0; j--)
+	 {
+		 if (map[row_][j].id == 砲 && key_ == 1)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[row_][j].id != SPACE)
+		 {
+			 key_++;
+		 }
+	 }
+
+	 //馬将军
+	 if (map[row_ - 1][col_ - 1].id == SPACE && (map[row_ - 2][col_ - 1].id == 馬 || map[row_ - 1][col_ - 2].id == 馬))
+	 {
+		 judge_ = true;
+	 }
+	 if (map[row_ + 1][col_ + 1].id == SPACE && (map[row_ + 2][col_ + 1].id == 馬 || map[row_ + 1][col_ + 2].id == 馬))
+	 {
+		 judge_ = true;
+	 }
+	 if (map[row_ + 1][col_ - 1].id == SPACE && (map[row_ + 2][col_ - 1].id == 馬 || map[row_ + 1][col_ - 2].id == 馬))
+	 {
+		 judge_ = true;
+	 }
+	 if (map[row_ - 1][col_ + 1].id == SPACE && (map[row_ - 2][col_ + 1].id == 馬 || map[row_ - 1][col_ + 2].id == 馬))
+	 {
+		 judge_ = true;
+	 }
+
+	 //将将军
+	 int key2 = 0;
+	 for (int i = row_ - 1; i>=0; i--)
+	 {
+		 if (map[i][col_].id == 将 && key2 == 0)
+		 {
+			 judge_ = true;
+			 break;
+		 }
+		 if (map[i][col_].id != SPACE)
+		 {
+			 key2++;
+		 }
+	 }
+ }
+
+ void start_button()
+ {
+	 settextcolor(BLACK);
+	 setbkmode(TRANSPARENT);
+	 settextstyle(50, 0, "楷体");
+	 char name[] = "开始游戏";
+	 int width = (800 - textwidth(name)) / 2;
+	 int height = (800 - textheight(name)) / 2 ;
+	 outtextxy(width, height, name);
+	
+ }
+
+ //退出按键
+ void quit_button()
+ {
+	 settextcolor(BLACK);
+	 setbkmode(TRANSPARENT);
+	 settextstyle(50, 0, "楷体");
+	 char name[] = "退出游戏";
+	 int width = (800 - textwidth(name)) / 2;
+	 int height = (800 - textheight(name)) / 2+100;
+	 outtextxy(width, height, name);
+
+ }
+
+ //开始界面
+ void Picture_()
+ {
+	 setbkcolor(WHITE);
+	 cleardevice();
+	 IMAGE imag;
+	 loadimage(&imag, "./1.jpeg", 800, 800);
+	 putimage(0, 0, &imag);
+	 settextcolor(BLACK);
+	 setbkmode(TRANSPARENT);
+	 settextstyle(80, 0, "楷体");
+	 char name[] = "中 国 象 棋";
+	 int width = (800 - textwidth(name)) / 2;
+	 int height = (800 - textheight(name)) / 2 - 250;
+	 outtextxy(width, height, name);
+	 start_button();
+	 quit_button();
+	 MouseControl_();
+ }
+
+ //音乐按键
+ void Music_button()
+ {
+	 settextcolor(BLACK);
+	 setbkmode(TRANSPARENT);
+	 settextstyle(30, 0, "楷体");
+	 char name[] = "音乐";
+	 int width = (800 - textwidth(name)) / 2 + 330;
+	 int height = (800 - textheight(name)) / 2 -330;
+	 outtextxy(width, height, name);
+	
+ }
+
+ //悔棋按键
+ void Retract_button()
+ {
+	 settextcolor(BLACK);
+	 setbkmode(TRANSPARENT);
+	 settextstyle(35, 0, "楷体");
+	 char name[] = "悔 棋";
+	 int width = (800 - textwidth(name)) / 2+330;
+	 int height = (800 - textheight(name)) / 2-200;
+	 outtextxy(width, height, name);
+	 
+ }
+
+ //返回菜单按钮
+ void Return_button()
+ {
+	 settextcolor(BLACK);
+	 setbkmode(TRANSPARENT);
+	 settextstyle(35, 0, "楷体");
+	 char name[] = "返回菜单";
+	 int width = (800 - textwidth(name)) / 2 + 330;
+	 int height = (800 - textheight(name)) / 2 +250;
+	 outtextxy(width, height, name);
+	 
+ }
+
+ //重新开始按钮
+ void Remake_button()
+ {
+	 settextcolor(BLACK);
+	 setbkmode(TRANSPARENT);
+	 settextstyle(35, 0, "楷体");
+	 char name[] = "重新开始";
+	 int width = (800 - textwidth(name)) / 2 + 330;
+	 int height = (800 - textheight(name)) / 2 - 100;
+	 outtextxy(width, height, name);
+	 
+ }
+
+ //弹窗
+ void Window_()
+ {
+	 HWND hnd = GetHWnd();
+	 //判断黑色方获胜
+	 int key = 0;
+	 for (int i = 0; i < ROW; i++)
+	 {
+		 for (int j = 0; j < COL; j++)
+		 {
+			 if (map[i][j].id == 帥)
+			 {
+				 key++;
+			 }
+		 }
+	 }
+	 if (key == 0)
+	 {
+		int isok= MessageBox(hnd, "恭喜黑色方获胜", "提示", MB_OKCANCEL);
+		if (isok == IDOK)
+		{
+			step = 0; 
+			GameInit();
+		}
+		else if (isok == IDCANCEL)
+		{
+			exit(0);
+		}
+	 }
+	 //判断红色方获胜
+	 int key_ = 0;
+	 for (int i = 0; i < ROW; i++)
+	 {
+		 for (int j = 0; j < COL; j++)
+		 {
+			 if (map[i][j].id == 将)
+			 {
+				 key_++;
+			 }
+		 }
+	 }
+	 if (key_ == 0)
+	 {
+		 int isok = MessageBox(hnd, "恭喜红色方获胜", "提示", MB_OKCANCEL);
+		 if (isok == IDOK)
+		 {
+			 step = 0;
+			 GameInit();
+		 }
+		 else if (isok == IDCANCEL)
+		 {
+			 exit(0);
+		 }
+	 }
+ }
+
+
+int main()
+{
+	initgraph(800, 800, SHOWCONSOLE);
+	GameInit();
+	BGM();
+	printf("中国象棋");
+	BeginBatchDraw();
+	while (1)
+	{
+		if (picture_switch == 1)
+		{
+			Picture_();
+			Music_button();
+			FlushBatchDraw();
+		}
+		else if (picture_switch == 2)
+		{
+				GameDraw();
+				Music_button();
+				Retract_button();
+				Return_button();
+				Remake_button();
+				FlushBatchDraw();
+				MouseControl();
+				Telling_Black();
+				Telling_Red();
+				Window_();
+		}
+	}
+	
+	getchar();
+	EndBatchDraw();
+	return 0;
+}
