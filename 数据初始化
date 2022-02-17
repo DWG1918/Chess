@@ -1,0 +1,88 @@
+void GameInit()
+{
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int k = 0; k < COL; k++)
+		{
+			int chessname = SPACE;
+			int mcolor = BLACK;
+			//黑棋
+			if (i <= 4)
+			{
+				mcolor = BLACK;
+				//初始化第一行的棋子，
+				if (i == 0)
+				{
+					if (k <= 4)
+					{
+						chessname = blackChess[k];
+					}
+					else
+					{
+						chessname = blackChess[8 - k];
+					}
+				}
+				//设置炮
+				if (i == 2 && (k == 1 || k == 7))
+				{
+					chessname = blackChess[5];
+				}
+				//设置小兵
+				if (i == 3 && k % 2 == 0)
+				{
+					chessname = blackChess[6];
+				}
+
+			}
+			//紅棋
+			else
+			{
+				mcolor = RED;
+				//初始化第一行的棋子，
+				if (i == 9)
+				{
+					if (k <= 4)
+					{
+						chessname = redChess[k];
+					}
+					else
+					{
+						chessname = redChess[8 - k];
+					}
+				}
+				//设置炮
+				if (i == 7 && (k == 1 || k == 7))
+				{
+					chessname = redChess[5];
+				}
+				//设置小兵
+				if (i == 6 && k % 2 == 0)
+				{
+					chessname = redChess[6];
+				}
+			}
+			map[i][k].id = chessname;
+			map[i][k].river = false;
+			map[i][k].type = mcolor;
+			map[i][k].x = k * CHESS_GRID_SIZE + INTERVAL;
+			map[i][k].y = i * CHESS_GRID_SIZE + INTERVAL;
+		}
+	}
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int j = 0; j < COL; j++)
+		{
+			if (map[i][j].id == SPACE)
+			{
+				map[i][j].type = YELLOW;
+			}
+		}
+	}
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int j = 0; j < COL; j++)
+		{
+			Record_each_step[0][i][j] = map[i][j];
+		}
+	}
+}
