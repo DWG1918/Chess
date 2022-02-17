@@ -1,0 +1,59 @@
+#include <graphics.h>	
+#include <easyx.h>
+#include <conio.h>
+#include <stdio.h>
+#include <math.h>
+#include<mmsystem.h>
+#pragma comment(lib,"winmm.lib")
+
+#define INTERVAL 50  //前面的间隔
+#define CHESS_GRID_SIZE 70  //格子宽度
+#define ROW  10
+#define COL  9
+enum PIECES//枚举棋子
+{
+	車, 馬, 象, 士, 将, 砲, 卒,
+	俥, 马, 相, 仕, 帥, 炮, 兵,
+	SPACE, BEGIN, END
+};
+//红黑方棋子
+int blackChess[] = { 車, 馬, 象, 士, 将, 砲, 卒 };
+int redChess[] = { 俥, 马, 相, 仕, 帥, 炮, 兵 };
+const char* chessName[] = { "車", "馬", "象", "士", "将", "砲", "卒", "俥", "马", "相", "仕", "帥", "炮", "兵" };
+struct Chess//棋子属性
+{
+	int x;
+	int y;
+	int id;//哪个棋子
+	int type;//是哪一方的棋子 红，黑？
+	bool river;//判断小兵是否过了河
+};
+struct Chess  map[ROW][COL];//结构体数组，用来保存每一个点的信息
+
+//state用来记录前后两次鼠标的点击位置
+struct state {
+	int begr;
+	int begc;
+	int endr;
+	int endc;
+	int state;
+}state = { -1,-1,-1,-1,BEGIN };
+int row = 0;
+int col = 0;
+
+bool judge = false;
+bool judge_ = false;
+
+int picture_switch = 1;//界面转化
+
+int music_control = 1;//音乐控制
+
+
+int step_record, step_interruption;//记录总共的步数，记录打断的步数
+int step = 0;//记录步数
+
+
+struct Chess Record_each_step[200][ROW][COL];
+
+int move_type =RED;//回合转化
+int move_type_record[200] = { RED };//记录每一次回合转化
