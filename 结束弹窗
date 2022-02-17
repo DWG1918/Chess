@@ -1,0 +1,54 @@
+ void Window_()
+ {
+	 HWND hnd = GetHWnd();
+	 //判断黑色方获胜
+	 int key = 0;
+	 for (int i = 0; i < ROW; i++)
+	 {
+		 for (int j = 0; j < COL; j++)
+		 {
+			 if (map[i][j].id == 帥)
+			 {
+				 key++;
+			 }
+		 }
+	 }
+	 if (key == 0)
+	 {
+		int isok= MessageBox(hnd, "恭喜黑色方获胜", "提示", MB_OKCANCEL);
+		if (isok == IDOK)
+		{
+			step = 0; 
+			GameInit();
+		}
+		else if (isok == IDCANCEL)
+		{
+			exit(0);
+		}
+	 }
+	 //判断红色方获胜
+	 int key_ = 0;
+	 for (int i = 0; i < ROW; i++)
+	 {
+		 for (int j = 0; j < COL; j++)
+		 {
+			 if (map[i][j].id == 将)
+			 {
+				 key_++;
+			 }
+		 }
+	 }
+	 if (key_ == 0)
+	 {
+		 int isok = MessageBox(hnd, "恭喜红色方获胜", "提示", MB_OKCANCEL);
+		 if (isok == IDOK)
+		 {
+			 step = 0;
+			 GameInit();
+		 }
+		 else if (isok == IDCANCEL)
+		 {
+			 exit(0);
+		 }
+	 }
+ }
