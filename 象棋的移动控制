@@ -1,0 +1,152 @@
+//象棋移动规则
+ void chessmove()
+ {
+	 bool canmove = false;
+	 if (!(state.begc == state.endc && state.begr == state.endr) && state.begc != -1 && state.begr != -1
+		 && map[state.begc][state.begr].id != SPACE
+		 && map[state.begc][state.begr].type != map[state.endc][state.endr].type && state.state == BEGIN
+		 && ((map[state.begc][state.begr].type == RED && move_type == RED) || (map[state.begc][state.begr].type == BLACK && move_type == BLACK)))
+	 {
+		 if (map[state.begc][state.begr].type == RED)
+		 {
+			 move_type = BLACK;
+		 }
+		 else if (map[state.begc][state.begr].type == BLACK)
+		 {
+			 move_type = RED;
+		 }
+		 switch (map[state.begc][state.begr].id)
+		 {
+		 case 車:
+		 case 俥:
+			 if (state.begc == state.endc || state.begr == state.endr && havestock(&state) == 0)
+			 {
+
+				 canmove = true;
+			 }
+			 break;
+		 case 馬:
+		 case 马:
+			 if ((state.endc == state.begc - 2 && map[state.begc - 1][state.begr].id == SPACE && abs(state.endr - state.begr) == 1)
+				 || (state.endc == state.begc + 2 && map[state.begc + 1][state.begr].id == SPACE && abs(state.endr - state.begr) == 1)
+				 || (state.endr == state.begr - 2 && map[state.begc][state.begr - 1].id == SPACE && abs(state.endc - state.begc) == 1)
+				 || (state.endr == state.begr + 2 && map[state.begc][state.begr + 1].id == SPACE && abs(state.endc - state.begc) == 1))
+			 {
+				 canmove = true;
+			 }
+			 break;
+		 case 象:
+		 case 相:
+			 if (map[state.begc][state.begr].id == 象 && state.endc <= 4)
+			 {
+				 if ((state.endc == state.begc + 2 && state.endr == state.begr + 2 && map[state.begc + 1][state.begr + 1].id == SPACE)
+					 || (state.endc == state.begc + 2 && state.endr == state.begr - 2 && map[state.begc + 1][state.begr - 1].id == SPACE)
+					 || (state.endc == state.begc - 2 && state.endr == state.begr - 2 && map[state.begc - 1][state.begr - 1].id == SPACE)
+					 || (state.endc == state.begc - 2 && state.endr == state.begr + 2 && map[state.begc - 1][state.begr + 1].id == SPACE))
+				 {
+					 canmove = true;
+				 }
+			 }
+			 if (map[state.begc][state.begr].id == 相 && state.endc >= 5)
+			 {
+				 if ((state.endc == state.begc + 2 && state.endr == state.begr + 2 && map[state.begc + 1][state.begr + 1].id == SPACE)
+					 || (state.endc == state.begc + 2 && state.endr == state.begr - 2 && map[state.begc + 1][state.begr - 1].id == SPACE)
+					 || (state.endc == state.begc - 2 && state.endr == state.begr - 2 && map[state.begc - 1][state.begr - 1].id == SPACE)
+					 || (state.endc == state.begc - 2 && state.endr == state.begr + 2 && map[state.begc - 1][state.begr + 1].id == SPACE))
+				 {
+					 canmove = true;
+				 }
+			 }
+			 break;
+		 case 士:
+		 case 仕:
+			 if (map[state.begc][state.begr].id == 士 && state.endr >= 3 && state.endr <= 5 && state.endc >= 0
+				 && state.endc <= 2 && abs(state.begc - state.endc) == 1 && abs(state.endr - state.begr) == 1)
+			 {
+				 canmove = true;
+			 }
+			 if (map[state.begc][state.begr].id == 仕 && state.endr >= 3 && state.endr <= 5 && state.endc >= 7
+				 && state.endc <= 9 && abs(state.begc - state.endc) == 1 && abs(state.endr - state.begr) == 1)
+			 {
+				 canmove = true;
+			 }
+			 break;
+		 case 将:
+		 case 帥:
+			 if (map[state.begc][state.begr].id == 将 && state.endr >= 3 && state.endr <= 5 && state.endc >= 0
+				 && state.endc <= 2 && (abs(state.begc - state.endc) == 1 || abs(state.endr - state.begr) == 1)
+				 && !(abs(state.begc - state.endc) == 1 && abs(state.endr - state.begr) == 1))
+			 {
+				 canmove = true;
+			 }
+			 if (map[state.begc][state.begr].id == 将 && havestock(&state) == 0 && map[state.endc][state.endr].id == 帥)
+			 {
+				 canmove = true;
+			 }
+			 if (map[state.begc][state.begr].id == 帥 && state.endr >= 3 && state.endr <= 5 && state.endc >= 7
+				 && state.endc <= 9 && (abs(state.begc - state.endc) == 1 || abs(state.endr - state.begr) == 1)
+				 && !(abs(state.begc - state.endc) == 1 && abs(state.endr - state.begr) == 1))
+			 {
+				 canmove = true;
+			 }
+			 if (map[state.begc][state.begr].id == 帥 && havestock(&state) == 0 && map[state.endc][state.endr].id == 将)
+			 {
+				 canmove = true;
+			 }
+			 break;
+		 case 砲:
+		 case 炮:
+			 if ((state.begc == state.endc || state.begr == state.endr) && ((havestock(&state) == 0 && map[row][col].id == SPACE) || (havestock(&state) == 1 && map[row][col].id != SPACE)))
+			 {
+				 canmove = true;
+			 }
+			 break;
+		 case 卒:
+		 case 兵:
+			 if (map[state.begc][state.begr].river == false && state.begr == state.endr)
+			 {
+				 if (map[state.begc][state.begr].type == BLACK && state.endc == state.begc + 1)
+				 {
+					 canmove = true;
+				 }
+				 else if (map[state.begc][state.begr].type == RED && state.endc == state.begc - 1)
+				 {
+					 canmove = true;
+				 }
+			 }
+			 if (map[state.begc][state.begr].river == true)
+			 {
+				 if (map[state.begc][state.begr].type == BLACK && ((state.endc == state.begc + 1 && state.begr == state.endr)
+					 || (abs(state.begr - state.endr) == 1 && state.begc == state.endc)))
+				 {
+					 canmove = true;
+				 }
+				 if (map[state.begc][state.begr].type == RED && ((state.endc == state.begc - 1 && state.begr == state.endr)
+					 || (abs(state.begr - state.endr) == 1 && state.begc == state.endc)))
+				 {
+					 canmove = true;
+				 }
+			 }
+			 break;
+		 }
+	 }
+	 
+
+	 if (canmove)
+	 {
+		 map[state.endc][state.endr].id = map[state.begc][state.begr].id;
+		 map[state.begc][state.begr].id = SPACE;
+		 map[state.endc][state.endr].type = map[state.begc][state.begr].type;
+		 map[state.begc][state.begr].type = YELLOW;
+		 //map[state.endc][state.endr].river = map[state.begc][state.begr].river;
+		 if(map[state.endc][state.endr].id==卒 && state.endc>=5)
+		 {
+			 map[state.endc][state.endr].river = true;
+		 }
+		 if (map[state.endc][state.endr].id ==兵 && state.endc <= 4)
+		 {
+			 map[state.endc][state.endr].river = true;
+		 }
+		 Record();
+	 }
+ }
