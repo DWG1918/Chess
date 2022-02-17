@@ -1,0 +1,80 @@
+void GameDraw()
+{
+	
+
+	//设置背景颜色 
+	setbkcolor(RGB(252, 215, 162));
+	cleardevice();
+
+	//绘制棋盘
+	setlinecolor(BLACK);
+	setlinestyle(PS_SOLID, 2);
+	for (int i = 0; i < 10; i++)
+	{
+		//画横线
+		line(INTERVAL, i * CHESS_GRID_SIZE + INTERVAL, 8 * CHESS_GRID_SIZE + INTERVAL, i * CHESS_GRID_SIZE + INTERVAL);
+		//画竖线
+		if (i < 9)
+		{
+			line(i * CHESS_GRID_SIZE + INTERVAL, INTERVAL, i * CHESS_GRID_SIZE + INTERVAL, 9 * CHESS_GRID_SIZE + INTERVAL);
+		}
+	}
+	rectangle(INTERVAL - 5, INTERVAL - 5, 8 * CHESS_GRID_SIZE + INTERVAL + 5, 5 + 9 * CHESS_GRID_SIZE + INTERVAL);
+	//楚河汉界显示
+	setfillcolor(RGB(252, 215, 162));
+	fillrectangle(INTERVAL, 4 * CHESS_GRID_SIZE + INTERVAL, 8 * CHESS_GRID_SIZE + INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL);
+	//显示文字
+	char river[20] = "楚河        汉界";
+	settextstyle(50, 0, "楷体");
+	settextcolor(BLACK);
+	setbkmode(TRANSPARENT);
+	outtextxy(INTERVAL + 100, 4 * CHESS_GRID_SIZE + INTERVAL + 10, river);
+	//画九宫格
+		//画上面
+	line(3 * CHESS_GRID_SIZE + INTERVAL, INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL, 2 * CHESS_GRID_SIZE + INTERVAL);
+	line(3 * CHESS_GRID_SIZE + INTERVAL, 2 * CHESS_GRID_SIZE + INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL, INTERVAL);
+	//画下面
+	line(3 * CHESS_GRID_SIZE + INTERVAL, 7 * CHESS_GRID_SIZE + INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL, 9 * CHESS_GRID_SIZE + INTERVAL);
+	line(3 * CHESS_GRID_SIZE + INTERVAL, 9 * CHESS_GRID_SIZE + INTERVAL, 5 * CHESS_GRID_SIZE + INTERVAL, 7 * CHESS_GRID_SIZE + INTERVAL);
+	//画棋子
+	settextstyle(30, 0, "楷体");
+	for (int i = 0; i < ROW; i++)
+	{
+		for (int k = 0; k < COL; k++)
+		{
+			if (map[i][k].id != SPACE)
+			{
+				setlinecolor(map[i][k].type);
+				fillcircle(map[i][k].x, map[i][k].y, 30);
+				fillcircle(map[i][k].x, map[i][k].y, 25);
+				settextcolor(map[i][k].type);
+				int width = textwidth(chessName[map[i][k].id]);
+				int height = textheight(chessName[map[i][k].id]);
+				outtextxy(map[i][k].x - width/2, map[i][k].y - height/2, chessName[map[i][k].id]);
+			}
+
+		}
+	}
+	//画出点击的边框
+	if (state.state==END && map[row][col].id!=SPACE)
+	{
+		setlinecolor(BLUE);
+		setlinestyle(PS_SOLID, 1);
+		rectangle(map[row][col].x - 30, map[row][col].y - 30, map[row][col].x + 30, map[row][col].y + 30);
+	}
+	//报将军
+	if (judge == true)
+	{
+		settextcolor(BLACK);
+		settextstyle(50, 0, "楷体");
+		setbkmode(TRANSPARENT);
+		outtextxy(630, 315, "将军");
+	}
+	if (judge_ == true)
+	{
+		settextcolor(RED);
+		settextstyle(50, 0, "楷体");
+		setbkmode(TRANSPARENT);
+		outtextxy(630, 405, "将军");
+	}
+}
